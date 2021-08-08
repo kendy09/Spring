@@ -43,12 +43,12 @@ public class PostagemController {
 				.map(resp ->ResponseEntity.ok(resp))
 				.orElse(ResponseEntity.notFound().build());
 	}
-	@PostMapping
+	@PostMapping("/cadastrar")
 	public ResponseEntity <Postagem> postPostagem(@RequestBody Postagem postagem){
 		return ResponseEntity.status(HttpStatus.CREATED).body(postagemRepository.save(postagem));
 	}
 	
-	@PutMapping
+	@PutMapping("/alterar")
 	public ResponseEntity<Postagem> putPostagem(@RequestBody Postagem postagem){
 		return ResponseEntity.status(HttpStatus.OK).body(postagemRepository.save(postagem));
 	}
