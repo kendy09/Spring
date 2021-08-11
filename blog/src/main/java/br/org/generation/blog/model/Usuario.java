@@ -47,6 +47,21 @@ public class Usuario {
 	@JsonIgnoreProperties("usuario")
 	public List<Postagem> postagem; 
 	
+	
+	
+	public Usuario(String nome, @NotNull(message = "O campo deve ter nome ") @Size(min = 3, max = 60) String usuario,
+			LocalDate dataNascimento,
+			@NotNull(message = "O campo deve ter senha") @Size(min = 5, message = "A senha deve ter pelo menos 5 carecteres") String senha) {
+		this.nome = nome;
+		this.usuario = usuario;
+		this.dataNascimento = dataNascimento;
+		this.senha = senha;
+	}
+	
+	public Usuario () {
+		
+	}
+
 	public long getId() {
 		return id;
 	}

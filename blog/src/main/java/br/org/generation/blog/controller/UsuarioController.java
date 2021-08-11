@@ -24,50 +24,52 @@ import br.org.generation.blog.service.UsuarioService;
 @RequestMapping("/usuarios")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UsuarioController {
-	
+
 	@Autowired
 	private UsuarioRepository usuarioRepository;
-	
+
 	@Autowired
 	private UsuarioService usuarioService;
-	
+
 	@GetMapping("/all")
-	public ResponseEntity<List<Usuario>> getAll(){
+	public ResponseEntity<List<Usuario>> GetAll() {
 		return ResponseEntity.ok(usuarioRepository.findAll());
 	}
-	
+
 	@GetMapping("/{id}")
-	public ResponseEntity<Usuario> getById(@PathVariable long id ){
+	public ResponseEntity<Usuario> GetById(@PathVariable long id) {
 		return usuarioRepository.findById(id)
-				.map(resp ->ResponseEntity.ok(resp))
-				.orElse(ResponseEntity.notFound().build());
+			.map(resp -> ResponseEntity.ok(resp))
+			.orElse(ResponseEntity.notFound().build());
 	}
-	
-	@GetMapping("/logar")
-	public ResponseEntity<UsuarioLogin> authentification(@RequestBody Optional<UsuarioLogin> usuario){
-		return usuarioService.logarUsuario(usuario)
-				.map(resp ->ResponseEntity.ok(resp))
-				.orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+
+	@PostMapping("/logar")
+	public ResponseEntity<UsuarioLogin> Autentication(@RequestBody Optional<UsuarioLogin> user) {
+		return usuarioService.Logar(user)
+			.map(resp -> ResponseEntity.ok(resp))
+			.orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
 	}
-	
+
 	@PostMapping("/cadastrar")
-	public ResponseEntity<Optional<Usuario>> cadastrarUsuario(@RequestBody Usuario usuario){
-		Optional <Usuario> novoUsuario = usuarioService.cadastrarUsuario(usuario);               
+	public ResponseEntity <Usuario> Post(@RequestBody Usuario usuario) {
+
+		Usuario usuarioResp = usuarioService.cadastrarUsuario(usuario);
 		try {
-			return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuario);
+			return ResponseEntity.status(HttpStatus.CREATED).body(usuarioResp);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
 		}
-		catch (Exception e) {
-			 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-		}
+
 	}
-	
+
 	@PutMapping("/alterar")
-	public ResponseEntity<Usuario> atualizarUsuario(@RequestBody Usuario usuario){
-		Optional<Usuario>updateUsuario = usuarioService.atualizarUsuario(usuario);
+	public ResponseEntity<Usuario> Put(@RequestBody Usuario usuario) {
+		Optional<Usuario> usuarioResp = usuarioService.atualizarUsuario(usuario);
 		try {
-			return ResponseEntity.ok(updateUsuario.get());
-		}catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+			return ResponseEntity.ok(usuarioResp.get());
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
 		}
 	}
+
 }

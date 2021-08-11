@@ -17,70 +17,85 @@ import br.org.generation.blog.model.UsuarioLogin;
 import br.org.generation.blog.repository.UsuarioRepository;
 
 @Service
-public class UsuarioService  {
-	
+public class UsuarioService {
+
 	@Autowired
 	private UsuarioRepository usuarioRepository;
-	
-	public Optional<Usuario>cadastrarUsuario(Usuario usuario){
-		if(usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario ja existe");
-		}
-		
+
+	public Usuario cadastrarUsuario(Usuario usuario) {
+
+		if (usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent())
+			throw new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "Usuário já existe!", null);
+
 		int idade = Period.between(usuario.getDataNascimento(), LocalDate.now()).getYears();
 		
-		if(idade <18) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario menor de idade");
-		}
+		if(idade < 18)
+			throw new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "Usuário menor de 18 anos", null);
 		
-		BCryptPasswordEncoder enconder = new BCryptPasswordEncoder();
-		String senhaEnconder = enconder.encode(usuario.getSenha());
-		usuario.setSenha(senhaEnconder);
-		
-		return Optional.of(usuarioRepository.save(usuario));
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+		String senhaEncoder = encoder.encode(usuario.getSenha());
+		usuario.setSenha(senhaEncoder);
+
+		return usuarioRepository.save(usuario);
 	}
-	
-	
-	public Optional<Usuario>atualizarUsuario(Usuario usuario){
-		
-		if(usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent()) {
+
+	public Optional<Usuario> atualizarUsuario(Usuario usuario) {
+
+		if(usuarioRepository.findById(usuario.getId()).isPresent()) {
 			
-			int idade = Period.between(usuario.getDataNascimento(), LocalDate.now()).getYears();
-			if(idade<18) {
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario menor de idade");
+			Optional<Usuario> buscaUsuario = usuarioRepository.findByUsuario(usuario.getUsuario());
+			
+			if( buscaUsuario.isPresent() ){
+
+				if(buscaUsuario.get().getId() != usuario.getId())
+					throw new ResponseStatusException(
+						HttpStatus.BAD_REQUEST, "Usuário já existe!", null);
 			}
-		BCryptPasswordEncoder enconder = new BCryptPasswordEncoder();
-		String senhaEnconder = enconder.encode(usuario.getSenha());
-		usuario.setSenha(senhaEnconder);
-		return Optional.of(usuarioRepository.save(usuario));
-		
-		}
-		else {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario não encontrado");
-		}
-	}
-	
-	public Optional<UsuarioLogin>logarUsuario(Optional<UsuarioLogin> usuarioLogin){
-		BCryptPasswordEncoder enconder = new BCryptPasswordEncoder();
-		Optional<Usuario> usuario = usuarioRepository.findByUsuario(usuarioLogin.get().getUsuario());
-		
-		if (usuario.isPresent()) {
 			
-			if (enconder.matches(usuarioLogin.get().getSenha(), usuario.get().getSenha())){
-				String auth = usuarioLogin.get().getUsuario()+":"+usuarioLogin.get().getSenha();
-				byte[] encondedauth = Base64.encodeBase64(auth.getBytes(Charset.forName("US-ASCII")));
-				String authHearder = "Basic" + new String(encondedauth);
-				
+			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+	
+			String senhaEncoder = encoder.encode(usuario.getSenha());
+			usuario.setSenha(senhaEncoder);
+	
+			return Optional.of(usuarioRepository.save(usuario));
+		
+		}else {
+			
+			throw new ResponseStatusException(
+					HttpStatus.NOT_FOUND, "Usuário não encontrado!", null);
+			
+		}	
+			
+	}
+
+	public Optional<UsuarioLogin> Logar(Optional<UsuarioLogin> usuarioLogin) {
+
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		Optional<Usuario> usuario = usuarioRepository.findByUsuario(usuarioLogin.get().getUsuario());
+
+		if (usuario.isPresent()) {
+			if (encoder.matches(usuarioLogin.get().getSenha(), usuario.get().getSenha())) {
+
+				String auth = usuarioLogin.get().getUsuario() + ":" + usuarioLogin.get().getSenha();
+				byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("US-ASCII")));
+				String authHeader = "Basic " + new String(encodedAuth);
+
 				usuarioLogin.get().setId(usuario.get().getId());
 				usuarioLogin.get().setNome(usuario.get().getNome());
 				usuarioLogin.get().setSenha(usuario.get().getSenha());
-				usuarioLogin.get().setToken(authHearder);
-				
+				usuarioLogin.get().setToken(authHeader);
+
 				return usuarioLogin;
+
 			}
-				
+		}
+		
+		throw new ResponseStatusException(
+				HttpStatus.UNAUTHORIZED, "Usuário ou senha inválidos!", null);
+		
 	}
-		throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha ou usuario invalidos");
-}
-	
+
 }
